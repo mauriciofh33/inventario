@@ -184,7 +184,7 @@ function hhmm(iso){ var d = new Date(iso); return String(d.getHours()).padStart(
 function dayTxt(iso){ var d = new Date(iso), t = new Date(); if (d.toDateString() === t.toDateString()) return 'hoy ' + hhmm(iso); return d.getDate() + ' ' + MESES[d.getMonth()].slice(0, 3) + ' ' + hhmm(iso); }
 function daysSince(iso){ return iso ? Math.floor((Date.now() - new Date(iso).getTime()) / 864e5) : 9999; }
 function newId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
-function normCode(s){ return String(s || '').trim().replace(/\/+$/, '').toLowerCase(); }
+function normCode(s){ return String(s || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, ''); }
 function ini(s){
   var w = String(s || '').replace(/^(revista|folleto|libro)\s+/i, '').split(/\s+/).filter(function(x){ return x.length > 2 || /\d/.test(x); });
   if (!w.length) return '·';
