@@ -370,6 +370,7 @@ function findByCode(code){
   var n = normCode(code); if (!n) return null;
   var ps = pubList(true);
   for (var i = 0; i < ps.length; i++){ var cs = ps[i].codes || []; for (var j = 0; j < cs.length; j++) if (normCode(cs[j]) === n) return ps[i]; }
+  for (var k = 0; k < ps.length; k++){ if (ps[k].sku && normCode(ps[k].sku) === n) return ps[k]; }
   return null;
 }
 function who(id){
@@ -532,7 +533,7 @@ SCREENS.scan = function(){
   if ((sc.state === 'idle' || sc.state === 'live') && cam.supported && !cam.denied){
     h += '<div class="camBox"><video id="camv" playsinline muted autoplay></video><div class="vf live"><i></i><i></i><i></i><i></i><div class="laser"></div></div>' + (cam.torchOk ? '<button class="camTorch' + (cam.torch ? ' on' : '') + '" data-a="torch" aria-label="Linterna">' + ic('bolt', 20) + '</button>' : '') + '</div>';
     h += '<div class="col" style="align-items:center;gap:4px;text-align:center"><span style="font-size:18px;font-weight:650">Apunta al código</span><span style="font-size:13.5px;color:rgba(255,255,255,.7)">QR o código de barras. Se lee solo, a unos 15 cm.</span></div>';
-    h += '<div class="col" style="gap:8px"><label class="lbl" for="codeIn">O escribe el código, pega el enlace o busca por nombre</label><form class="row-f" style="gap:8px" data-f="codeForm"><input id="codeIn" class="input dk-input" autocomplete="off" enterkeyhint="search" placeholder="Código, enlace o nombre" value="' + esc(sc.typed || '') + '"><button class="btn-s dk-btn" style="width:auto;min-width:64px" type="submit" aria-label="Buscar">' + ic('search', 20) + '</button></form></div>';
+    h += '<div class="col" style="gap:8px"><label class="lbl" for="codeIn">¿No tiene QR? Escribe la clave impresa (ej. wp18.3-S) o busca por nombre</label><form class="row-f" style="gap:8px" data-f="codeForm"><input id="codeIn" class="input dk-input" autocomplete="off" enterkeyhint="search" placeholder="Clave, código o nombre" autocapitalize="off" value="' + esc(sc.typed || '') + '"><button class="btn-s dk-btn" style="width:auto;min-width:64px" type="submit" aria-label="Buscar">' + ic('search', 20) + '</button></form></div>';
     if (sc.results){
       h += sc.results.length ? '<div class="sheet" style="padding:0;overflow:hidden">' + sc.results.map(function(r){ return pubRow(r, 'pickPub'); }).join('') + '</div>' : '<div class="lbl" style="text-align:center">Sin coincidencias por nombre.</div>';
     }
@@ -543,7 +544,7 @@ SCREENS.scan = function(){
     h += '<button class="shoot" data-a="photo" ' + (sc.state === 'busy' ? 'disabled' : '') + '><div class="vf ' + vf + '"><i></i><i></i><i></i><i></i>' + (sc.state === 'idle' ? '<div class="laser"></div>' : '') + (sc.state === 'busy' ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div class="spin"></div></div>' : '') + '</div>' +
       '<span style="font-size:19px;font-weight:700">' + (sc.state === 'busy' ? 'Leyendo código…' : sc.state === 'fail' ? 'No se encontró código' : 'Tomar foto del código') + '</span>' +
       '<span style="font-size:14px;color:rgba(255,255,255,.7);line-height:1.45;max-width:300px">' + (sc.state === 'fail' ? 'Acércate a unos 15 cm, que el código se vea completo y sin reflejo, y vuelve a intentar.' : 'QR o código de barras. Toca aquí, toma la foto y la app identifica la publicación.') + '</span></button>' + (cam.denied ? '<div class="banner" style="background:rgba(255,255,255,.08);color:#fff">' + ic('warn', 18) + '<span>La cámara en vivo no está permitida. Actívala en los permisos del navegador para este sitio y toca <button class="btn-g" style="color:#fff;min-height:auto;padding:0;text-decoration:underline" data-a="camRetry">reintentar</button>.</span></div>' : '');
-    h += '<div class="col" style="gap:8px"><label class="lbl" for="codeIn">O escribe el código, pega el enlace del QR o busca por nombre</label><form class="row-f" style="gap:8px" data-f="codeForm"><input id="codeIn" class="input dk-input" autocomplete="off" enterkeyhint="search" placeholder="Código, enlace o nombre" value="' + esc(sc.typed || '') + '"><button class="btn-s dk-btn" style="width:auto;min-width:64px" type="submit" aria-label="Buscar">' + ic('search', 20) + '</button></form></div>';
+    h += '<div class="col" style="gap:8px"><label class="lbl" for="codeIn">¿No tiene QR? Escribe la clave impresa (ej. wp18.3-S) o busca por nombre</label><form class="row-f" style="gap:8px" data-f="codeForm"><input id="codeIn" class="input dk-input" autocomplete="off" enterkeyhint="search" placeholder="Clave, código o nombre" autocapitalize="off" value="' + esc(sc.typed || '') + '"><button class="btn-s dk-btn" style="width:auto;min-width:64px" type="submit" aria-label="Buscar">' + ic('search', 20) + '</button></form></div>';
     if (sc.results){
       h += sc.results.length ? '<div class="sheet" style="padding:0;overflow:hidden">' + sc.results.map(function(r){ return pubRow(r, 'pickPub'); }).join('') + '</div>' : '<div class="lbl" style="text-align:center">Sin coincidencias por nombre.</div>';
     }
@@ -560,7 +561,7 @@ SCREENS.scan = function(){
   }
   if (sc.state === 'miss'){
     h += '<div class="sheet"><span class="chip st-bad" style="align-self:flex-start">No está en el catálogo</span><div class="code" style="font-size:14px;color:var(--ink)">' + esc(sc.code) + '</div>' +
-      '<p style="font-size:14.5px;line-height:1.45;color:var(--ink2)">Puede ser una publicación nueva, o el otro código (QR o barras) de una que ya registraste.</p>' +
+      '<p style="font-size:14.5px;line-height:1.45;color:var(--ink2)">' + (isClave(sc.code) ? 'No hay ninguna publicación con esa clave. Si es nueva, agrégala; si ya existe con otra clave, asígnala.' : 'Puede ser una publicación nueva, o el otro código (QR o barras) de una que ya registraste.') + '</p>' +
       '<button class="btn-p" data-a="newPubCode">' + ic('plus', 21) + 'Agregar publicación nueva</button>' +
       (pubList().length ? '<button class="btn-s" data-a="assignOpen">Es otro código de una que ya existe</button>' : '') +
       '<button class="btn-s" data-a="scanReset">Escanear otra vez</button>';
@@ -780,7 +781,7 @@ SCREENS.edit = function(){
   h += '<div class="field"><span class="lbl">Tipo</span><div class="seg">' + ['Revista', 'Libro', 'Folleto'].map(function(t){ return '<button class="' + (e.type === t ? 'on' : '') + '" data-a="eType" data-v="' + t + '">' + t + '</button>'; }).join('') + '</div></div>';
   h += '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"><div class="field"><span class="lbl">Presentación</span><div class="seg">' + ['Paquete', 'Caja'].map(function(t){ return '<button class="' + (e.pres === t ? 'on' : '') + '" data-a="ePres" data-v="' + t + '" style="font-size:13.5px">' + t + '</button>'; }).join('') + '</div></div><label class="field"><span class="lbl">Unidades por ' + (e.pres === 'Caja' ? 'caja' : 'paquete') + '</span><input id="e-pack" class="input num" style="min-height:52px" type="number" inputmode="numeric" value="' + esc(e.pack) + '" placeholder="Ej. 500"></label></div>';
   h += '<div class="field"><span class="lbl">Peso promedio por unidad (gramos)</span><div class="row-f" style="gap:8px"><input id="e-avg" class="input num" type="text" inputmode="decimal" value="' + esc(e.avg) + '" placeholder="Ej. 36.8"><button class="btn-s" style="width:auto;flex:none;min-height:54px" data-a="calibFromEdit">' + ic('scale', 19) + 'Calibrar</button></div><span class="lbl">' + (e.calibAt ? 'Última calibración: ' + dayTxt(e.calibAt) + ' con ' + (e.calibSample || '?') + ' piezas' : 'Opcional. Lo necesitas para contar por peso.') + '</span></div>';
-  h += '<label class="field"><span class="lbl">Clave para el reporte (opcional)</span><input id="e-sku" class="input" value="' + esc(e.sku) + '" placeholder="La clave que usa la sucursal" autocomplete="off"><span class="lbl">Si la dejas vacía, el reporte usa el primer código.</span></label>';
+  h += '<label class="field"><span class="lbl">Clave impresa (opcional)</span><input id="e-sku" class="input" value="' + esc(e.sku) + '" placeholder="La clave que usa la sucursal" autocomplete="off"><span class="lbl">La que viene junto al QR, por ejemplo wp18.3-S. Sirve para buscarla sin QR y sale en el reporte.</span></label>';
   h += '<div class="field"><span class="lbl">Estado</span><div class="seg"><button class="' + (e.active ? 'on' : '') + '" data-a="eActive" data-v="1">Activa</button><button class="' + (!e.active ? 'on' : '') + '" data-a="eActive" data-v="0">Ya no se maneja</button></div></div>';
   h += '<label class="field"><span class="lbl">Observaciones</span><textarea id="e-notes" class="input" placeholder="Ej. viene en caja de cartón doble">' + esc(e.notes) + '</textarea></label>';
   if (e.err) h += '<div role="alert" class="banner st-bad">' + esc(e.err) + '</div>';
@@ -813,6 +814,7 @@ function savePub(){
   var e = st.edit, name = String(e.name || '').trim(), pack = parseInt(e.pack, 10), avgS = String(e.avg || '').trim(), avg = pnum(avgS);
   var err = !name ? 'Escribe el nombre de la publicación.' : (e.pack !== '' && !(pack >= 1)) ? 'Las unidades por paquete deben ser un número mayor a 0.' : (avgS !== '' && !(avg > 0)) ? 'El peso promedio debe ser un número mayor a 0, en gramos.' : '';
   if (!err){ for (var i = 0; i < e.codes.length; i++){ var o = findByCode(e.codes[i]); if (o && o.id !== e.id){ err = 'El código ' + shortCode(e.codes[i]) + ' ya pertenece a “' + o.name + '”.'; break; } } }
+  if (!err && String(e.sku || '').trim()){ var sk = normCode(e.sku), dup = pubList(true).filter(function(p){ return p.id !== e.id && normCode(p.sku) === sk; })[0]; if (dup) err = 'La clave ' + String(e.sku).trim() + ' ya pertenece a “' + dup.name + '”.'; }
   if (err){ e.err = err; render(); return; }
   var id = e.id || newId(), old = st.pubs[id] || {};
   var doc = Object.assign({}, old, { name: name, codes: e.codes, type: e.type, pres: e.pres, pack: pack >= 1 ? pack : 1, avg: avg > 0 ? avg : 0, sku: String(e.sku || '').trim(), active: !!e.active, notes: String(e.notes || '').trim(), updatedAt: new Date().toISOString() });
@@ -1163,11 +1165,12 @@ function handleCode(raw){
   if (partsFor(p.id).length){ st.scan = { state: 'dup', pubId: p.id }; st.lastSaved = null; render(); return; }
   openCount(p.id, 'new', 'scan');
 }
+function isClave(v){ v = String(v || '').trim(); return !!v && !/^https?:/i.test(v) && !/^\d{6,}$/.test(v) && /[\d\-.]/.test(v) && !/\s/.test(v) && v.length <= 30; }
 function searchTyped(v){
   v = String(v || '').trim(); if (!v) return;
   var p = findByCode(v); if (p){ handleCode(v); return; }
-  var q = v.toLowerCase(), rs = summary().rows.filter(function(r){ return String(r.p.name).toLowerCase().indexOf(q) >= 0 || (r.p.codes || []).some(function(c){ return normCode(c).indexOf(q) >= 0; }); });
-  if (!rs.length && (/^\d{6,}$/.test(v) || /^https?:/i.test(v))){ st.scan = { state: 'miss', code: v }; render(); return; }
+  var q = v.toLowerCase(), rs = summary().rows.filter(function(r){ return String(r.p.name).toLowerCase().indexOf(q) >= 0 || (r.p.codes || []).some(function(c){ return normCode(c).indexOf(q) >= 0; }) || normCode(r.p.sku).indexOf(normCode(q)) >= 0; });
+  if (!rs.length && (/^\d{6,}$/.test(v) || /^https?:/i.test(v) || isClave(v))){ st.scan = { state: 'miss', code: v }; render(); return; }
   st.scan = { state: 'idle', typed: v, results: rs.slice(0, 8) }; render();
 }
 
@@ -1214,7 +1217,7 @@ var A = {
   cSample: function(v){ st.calib.sample = +v; render(); },
   saveCalib: function(){ saveCalib(); },
   newPub: function(){ openEdit(null, st.screen === 'catalog' ? 'catalog' : st.screen === 'home' ? 'home' : 'inventory'); },
-  newPubCode: function(){ openEdit(null, 'scan', { codes: [st.scan.code], thenCount: true }); },
+  newPubCode: function(){ var c = st.scan.code; openEdit(null, 'scan', isClave(c) ? { codes: [], sku: c, thenCount: true } : { codes: [c], thenCount: true }); },
   assignOpen: function(){ st.scan.assign = true; render(); var e = $('#assignQ'); if (e) e.focus(); },
   assignTo: function(id){ var p = st.pubs[id], code = st.scan.code; write('pubs', id, Object.assign({}, p, { codes: (p.codes || []).concat([code]), updatedAt: new Date().toISOString() })); toast('Código agregado a ' + p.name); st.scan = { state: 'idle' }; handleCode(code); },
   editPub: function(id){ openEdit(id, st.screen); },
@@ -1267,7 +1270,7 @@ document.addEventListener('input', function(e){
   else if (k === 'looseN'){ f.looseN = t.value === '' ? '' : pint(t.value); paintCount(); }
   else if (k === 'loc'){ f.loc = t.value; }
   else if (k === 'invQ'){ st.q = t.value; var l = $('#invList'); if (l) l.innerHTML = invList(); }
-  else if (k === 'catQ'){ st.cq = t.value; var q = normCode(t.value); var l2 = $('#catList'); if (l2) l2.innerHTML = catList(pubList(true).filter(function(p){ return !q || p.name.toLowerCase().indexOf(q) >= 0 || (p.codes || []).some(function(c){ return normCode(c).indexOf(q) >= 0; }); })); }
+  else if (k === 'catQ'){ st.cq = t.value; var q = normCode(t.value); var l2 = $('#catList'); if (l2) l2.innerHTML = catList(pubList(true).filter(function(p){ return !q || p.name.toLowerCase().indexOf(q) >= 0 || (p.codes || []).some(function(c){ return normCode(c).indexOf(q) >= 0; }) || normCode(p.sku).indexOf(q) >= 0; })); }
   else if (k === 'assignQ'){ st.scan.assignQ = t.value; var l3 = $('#assignList'); if (l3) l3.innerHTML = assignList(); }
   else if (k === 'ckg'){ st.calib.kg = t.value; var r = $('#calRes'); if (r) r.innerHTML = calibRes(st.calib, st.pubs[st.calib.pubId] || { avg: st.calib.curAvg }); var b = $('#b-cal'); if (b) b.disabled = !(pnum(t.value) > 0); }
   else if (k === 'sloc'){ st.settings.loc = t.value.trim(); saveSettings(); }
